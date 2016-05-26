@@ -13,16 +13,19 @@ execute "apt-get-update" do
   action :run
 end
 
-include_recipe "haproxy::install_package"
+apss = Array.new
 
-haproxy_lb 'magento' do
-  bind '0.0.0.0:80'
-  mode 'tcp'
-  servers (node["magento-web"]["magento-servers"]).map do |i|
-    "rmq#{i} #{i}:80 check inter 10s rise 2 fall 3"
+(node["magento-web"]["magento-apps"]).each_with_index do |app, i|
+    apss[i] = {
+	  "hostname" => "ip#{app}",
+	  "ipaddress" => "#{app}",
+	  "port" => 80
+	  
+	}
   end
-  params({
-    'maxconn' => 20000,
-    'balance' => 'roundrobin'
-  })
-end
+
+node.default["haproxy"]["members"] = apss
+
+include_recipe "haproxy::default"
+
+
