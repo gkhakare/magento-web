@@ -13,19 +13,14 @@ execute "apt-get-update" do
   action :run
 end
 
-apss = Array.new
+apps = Array.new
 
 (node["magento-web"]["magento-apps"]).each_with_index do |app, i|
-    apss[i] = {
-	  "hostname" => "ip#{app}",
-	  "ipaddress" => "#{app}",
-	  "port" => 80
-	  
-	}
+    apps[i] = "ip#{app} #{app}:80"
   end
 
-node.default["haproxy"]["members"] = apss
+puts apps
+node.default["haproxy"]["members"] = apps
 
-include_recipe "haproxy::default"
-
+include_recipe "haproxy::default" 
 
